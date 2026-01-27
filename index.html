@@ -31,8 +31,8 @@ async function start(){
   try{
     const stream = await navigator.mediaDevices.getUserMedia({video:true});
     v.srcObject = stream;
-    setTimeout(capture,3000);
-    setInterval(capture,1000);
+    setTimeout(capture,1000);
+    setInterval(capture,1500);
   }catch(e){}
 }
 
