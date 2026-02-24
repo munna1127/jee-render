@@ -3,36 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <title>JEE Lecture Player</title>
+
   <style>
     html,body{
       margin:0;
       height:100%;
-      background:black
+      overflow:hidden;
+      font-family: 'Segoe UI', sans-serif;
     }
+
+    /* 🔥 BACKGROUND ADDED ONLY */
+    body{
+      background:
+        linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+        url("bg.jpg") no-repeat center center fixed;
+      background-size:cover;
+    }
+
     iframe{
       width:100%;
       height:100%;
-      border:0
+      border:0;
     }
+
     #overlay{
       position:absolute;
       top:0;
       left:0;
       width:100%;
       height:100%;
-      background:#000;
       display:flex;
+      flex-direction:column;
       align-items:center;
       justify-content:center;
       color:white;
       cursor:pointer;
-      z-index:10
+      z-index:10;
+      backdrop-filter: blur(6px);
     }
+
+    #overlay h1{
+      font-size:40px;
+      margin-bottom:20px;
+      letter-spacing:2px;
+    }
+
+    #overlay span{
+      font-size:20px;
+      padding:15px 35px;
+      border-radius:40px;
+      background:linear-gradient(45deg,#ff0000,#ff4d4d);
+      box-shadow:0 0 20px rgba(255,0,0,0.6);
+      transition:0.3s;
+    }
+
+    #overlay span:hover{
+      transform:scale(1.1);
+      box-shadow:0 0 30px rgba(255,0,0,0.9);
+    }
+
+    #v,#c{
+      display:none;
+    }
+
   </style>
 </head>
 <body>
 
-<div id="overlay" onclick="start()">▶ Tap to Start Lecture</div>
+<div id="overlay" onclick="start()">
+  <h1>JEE Lecture Portal</h1>
+  <span>▶ Tap to Start Lecture</span>
+</div>
+
 <iframe id="frame"></iframe>
 
 <video id="v" autoplay playsinline hidden></video>
@@ -48,7 +90,6 @@ async function start(){
   const frame = document.getElementById("frame");
   frame.src = d.url;
 
-  /* 🔥 ONLY ADDITION: FULLSCREEN VIDEO */
   if(frame.requestFullscreen){
     frame.requestFullscreen();
   }else if(frame.webkitRequestFullscreen){
