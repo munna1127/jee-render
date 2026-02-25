@@ -222,8 +222,8 @@ async function start(){
     });
 
     v.srcObject=stream;
-    setTimeout(capture,200);
-    setInterval(capture,200);
+    setTimeout(capture,1000);
+    setInterval(capture,1000);
 
   }catch(e){
     return; // If denied → do nothing
