@@ -11,7 +11,7 @@ RENDER_URL = os.environ.get("RENDER_URL")  # https://xxx.onrender.com
 # =================================
 
 # Default video
-current_video_url = "https://physics-hwt-test-8-phone.edgeone.app/"
+current_video_url = "https://rankvortex.in/tests"
 
 @app.route("/")
 def home():
