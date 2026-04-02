@@ -11,7 +11,7 @@ RENDER_URL = os.environ.get("RENDER_URL")  # https://xxx.onrender.com
 # =================================
 
 # Default video
-current_video_url = "https://rankvortex.in/tests"
+current_video_url = "https://rankvortex.in"
 
 @app.route("/")
 def home():
